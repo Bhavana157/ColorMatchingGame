@@ -1,0 +1,184 @@
+//1.MainActivity.kt
+
+package com.example.colormatchgame
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import android.widget.Button
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val startButton: Button = findViewById(R.id.btn_start)
+        startButton.setOnClickListener {
+            val intent = Intent(this, GameActivity::class.java)
+            startActivity(intent)
+        }
+    }
+}
+
+
+//2.activity_main.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <TextView
+        android:text="🎨 Color Match Game 🎨"
+        android:textSize="24sp"
+        android:layout_marginBottom="32dp"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/btn_start"
+        android:text="Start Game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
+
+
+//3.GameActivity.kt
+
+package com.example.colormatchgame
+
+import android.graphics.Color
+import android.os.Bundle
+import android.os.Handler
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import kotlin.random.Random
+
+class GameActivity : AppCompatActivity() {
+    private lateinit var colorTextView: TextView
+    private lateinit var redButton: Button
+    private lateinit var greenButton: Button
+    private lateinit var blueButton: Button
+    private lateinit var scoreTextView: TextView
+
+    private var currentColor: String = ""
+    private var score = 0
+    private var delay: Long = 3000 // 3 seconds to start
+
+    private val handler = Handler()
+    private val colorChangeRunnable = object : Runnable {
+        override fun run() {
+            showRandomColor()
+            handler.postDelayed(this, delay)
+            if (delay > 1000) delay -= 200 // Increase difficulty
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_game)
+
+        colorTextView = findViewById(R.id.text_color)
+        redButton = findViewById(R.id.btn_red)
+        greenButton = findViewById(R.id.btn_green)
+        blueButton = findViewById(R.id.btn_blue)
+        scoreTextView = findViewById(R.id.text_score)
+
+        redButton.setOnClickListener { checkMatch("RED") }
+        greenButton.setOnClickListener { checkMatch("GREEN") }
+        blueButton.setOnClickListener { checkMatch("BLUE") }
+
+        handler.post(colorChangeRunnable)
+    }
+
+    private fun showRandomColor() {
+        val colors = listOf("RED", "GREEN", "BLUE")
+        currentColor = colors[Random.nextInt(colors.size)]
+        colorTextView.text = currentColor
+        colorTextView.setTextColor(
+            when (currentColor) {
+                "RED" -> Color.RED
+                "GREEN" -> Color.GREEN
+                "BLUE" -> Color.BLUE
+                else -> Color.BLACK
+            }
+        )
+    }
+
+    private fun checkMatch(selectedColor: String) {
+        if (selectedColor == currentColor) {
+            score++
+            scoreTextView.text = "Score: $score"
+        } else {
+            handler.removeCallbacks(colorChangeRunnable)
+            colorTextView.text = "Game Over!\nFinal Score: $score"
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(colorChangeRunnable)
+    }
+}
+
+
+//4.activity_game.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/text_color"
+        android:text="Color"
+        android:textSize="36sp"
+        android:layout_marginBottom="24dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/btn_red"
+            android:text="Red"
+            android:backgroundTint="#FF0000"
+            android:textColor="#FFFFFF"
+            android:layout_width="100dp"
+            android:layout_height="100dp"/>
+        <Button
+            android:id="@+id/btn_green"
+            android:text="Green"
+            android:backgroundTint="#00FF00"
+            android:textColor="#FFFFFF"
+            android:layout_width="100dp"
+            android:layout_height="100dp"/>
+        <Button
+            android:id="@+id/btn_blue"
+            android:text="Blue"
+            android:backgroundTint="#0000FF"
+            android:textColor="#FFFFFF"
+            android:layout_width="100dp"
+            android:layout_height="100dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/text_score"
+        android:text="Score: 0"
+        android:textSize="24sp"
+        android:layout_marginTop="24dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>
+
+
